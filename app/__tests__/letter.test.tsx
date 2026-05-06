@@ -42,12 +42,14 @@ describe('Letter detail screen', () => {
     expect(getByText('🐝')).toBeTruthy();
   });
 
-  it('speaks the letter and word in English on mount', () => {
+  it('speaks the word first on mount (emoji before letter)', () => {
     render(<Wrapped />);
     expect(speak).toHaveBeenCalledWith(
-      'B.',
+      'Bee',
       expect.objectContaining({ language: 'en-US' })
     );
+    // The first call is the word; the letter follows via onDone.
+    expect(speak.mock.calls[0][0]).toBe('Bee');
   });
 
   it('navigates to the next letter when the right arrow is pressed', () => {

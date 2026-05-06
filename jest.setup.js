@@ -38,6 +38,29 @@ jest.mock('expo-symbols', () => ({
   SymbolView: 'SymbolView',
 }));
 
+// AsyncStorage in-memory mock used by the language persistence layer.
+jest.mock('@react-native-async-storage/async-storage', () => {
+  let store = {};
+  return {
+    __esModule: true,
+    default: {
+      getItem: jest.fn((key) => Promise.resolve(store[key] ?? null)),
+      setItem: jest.fn((key, value) => {
+        store[key] = value;
+        return Promise.resolve();
+      }),
+      removeItem: jest.fn((key) => {
+        delete store[key];
+        return Promise.resolve();
+      }),
+      clear: jest.fn(() => {
+        store = {};
+        return Promise.resolve();
+      }),
+    },
+  };
+});
+
 // react-native-svg renders fine through jest-expo's transformer; no mock needed.
 
 // Silence noisy native warnings that happen during component mount in JSDOM.

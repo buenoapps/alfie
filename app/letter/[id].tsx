@@ -41,10 +41,14 @@ export default function LetterScreen() {
   const speak = useCallback(() => {
     Speech.stop();
     const locale = speechLocale(lang);
-    Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05, language: locale });
-    setTimeout(() => {
-      Speech.speak(word.word, { rate: 0.85, pitch: 1.05, language: locale });
-    }, 550);
+    Speech.speak(word.word, {
+      rate: 0.85,
+      pitch: 1.05,
+      language: locale,
+      onDone: () => {
+        Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05, language: locale });
+      },
+    });
   }, [entry.letter, word.word, lang]);
 
   useEffect(() => {
@@ -87,21 +91,21 @@ export default function LetterScreen() {
       </View>
 
       <View style={styles.content}>
+        <Animated.View entering={FadeInDown.duration(500)} style={styles.wordRow}>
+          <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
+          <ThemedText type="title" style={styles.word}>
+            {word.word}
+          </ThemedText>
+        </Animated.View>
+
         <Animated.View
-          entering={FadeInDown.duration(500)}
+          entering={FadeInDown.delay(150).duration(500)}
           style={[styles.bigLetterWrap, blockStyle]}
         >
           <Pressable onPress={speak} accessibilityRole="button" style={styles.bigLetterBlock}>
             <ThemedText style={styles.bigLetterUpper}>{entry.letter}</ThemedText>
             <ThemedText style={styles.bigLetterLower}>{entry.letter.toLowerCase()}</ThemedText>
           </Pressable>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.wordRow}>
-          <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
-          <ThemedText type="title" style={styles.word}>
-            {word.word}
-          </ThemedText>
         </Animated.View>
 
         <View style={styles.controls}>
@@ -188,13 +192,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 36,
   },
+  wordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  emoji: {
+    fontSize: 72,
+    lineHeight: 96,
+  },
+  word: {
+    color: Palette.ink,
+  },
   bigLetterWrap: {
     alignItems: 'center',
   },
   bigLetterBlock: {
     backgroundColor: Palette.white,
     paddingHorizontal: 36,
-    paddingVertical: 18,
+    paddingVertical: 24,
     borderRadius: 36,
     borderWidth: 4,
     borderColor: Palette.honey,
@@ -209,26 +225,17 @@ const styles = StyleSheet.create({
   },
   bigLetterUpper: {
     fontSize: 132,
+    lineHeight: 160,
     fontWeight: '900',
     color: Palette.ink,
-    lineHeight: 138,
+    includeFontPadding: false,
   },
   bigLetterLower: {
     fontSize: 88,
+    lineHeight: 108,
     fontWeight: '800',
     color: Palette.honeyDark,
-    lineHeight: 96,
-  },
-  wordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  emoji: {
-    fontSize: 48,
-  },
-  word: {
-    color: Palette.ink,
+    includeFontPadding: false,
   },
   controls: {
     flexDirection: 'row',

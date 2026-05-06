@@ -64,18 +64,28 @@ export default function QuizScreen() {
   const current = questions[currentIndex];
   const word = current ? localized(current.answer, lang) : null;
 
-  const speakLetter = useCallback(
+  const speakWord = useCallback(
     (entry: LetterEntry) => {
       const w = localized(entry, lang);
-      const locale = speechLocale(lang);
       Speech.stop();
-      Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05, language: locale });
-      setTimeout(() => {
-        Speech.speak(w.word, { rate: 0.85, pitch: 1.05, language: locale });
-      }, 550);
+      Speech.speak(w.word, { rate: 0.85, pitch: 1.05, language: speechLocale(lang) });
     },
     [lang]
   );
+
+  const speakLetter = useCallback(
+    (letter: string) => {
+      Speech.stop();
+      Speech.speak(`${letter}.`, { rate: 0.85, pitch: 1.05, language: speechLocale(lang) });
+    },
+    [lang]
+  );
+
+  // Auto-speak the word whenever a new question appears.
+  useEffect(() => {
+    if (!current || done) return;
+    speakWord(current.answer);
+  }, [currentIndex, done, current, speakWord]);
 
   useEffect(() => {
     return () => {
@@ -86,6 +96,8 @@ export default function QuizScreen() {
 
   const handleChoice = (letter: string) => {
     if (!current || done) return;
+    speakLetter(letter);
+
     const correct = letter === current.answer.letter;
 
     if (!correct) {
@@ -93,9 +105,9 @@ export default function QuizScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
       setWrongChoices((prev) => {
-        const next = new Set(prev);
-        next.add(letter);
-        return next;
+        const nextSet = new Set(prev);
+        nextSet.add(letter);
+        return nextSet;
       });
       return;
     }
@@ -106,7 +118,6 @@ export default function QuizScreen() {
     if (wrongChoices.size === 0) {
       setScore((s) => s + 1);
     }
-    speakLetter(current.answer);
 
     advanceTimer.current = setTimeout(() => {
       if (currentIndex + 1 >= questions.length) {
@@ -132,6 +143,10 @@ export default function QuizScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     router.back();
+  };
+
+  const handleEmojiPress = () => {
+    if (current) speakWord(current.answer);
   };
 
   return (
@@ -160,6 +175,7 @@ export default function QuizScreen() {
           options={current.options}
           wrongChoices={wrongChoices}
           onChoose={handleChoice}
+          onEmojiPress={handleEmojiPress}
         />
       )}
     </SafeAreaView>
@@ -172,14 +188,27 @@ type QuestionViewProps = {
   options: string[];
   wrongChoices: Set<string>;
   onChoose: (letter: string) => void;
+  onEmojiPress: () => void;
 };
 
-function QuestionView({ emoji, prompt, options, wrongChoices, onChoose }: QuestionViewProps) {
+function QuestionView({
+  emoji,
+  prompt,
+  options,
+  wrongChoices,
+  onChoose,
+  onEmojiPress,
+}: QuestionViewProps) {
   return (
     <Animated.View entering={FadeIn.duration(300)} style={styles.questionContent}>
-      <View style={styles.emojiCard}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Hear the word"
+        onPress={onEmojiPress}
+        style={styles.emojiCard}
+      >
         <ThemedText style={styles.bigEmoji}>{emoji}</ThemedText>
-      </View>
+      </Pressable>
       <ThemedText type="subtitle" style={styles.prompt}>
         {prompt}
       </ThemedText>
@@ -343,8 +372,8 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
   },
   emojiCard: {
-    width: 200,
-    height: 200,
+    width: 220,
+    height: 220,
     borderRadius: 36,
     backgroundColor: Palette.white,
     borderWidth: 4,
@@ -359,7 +388,8 @@ const styles = StyleSheet.create({
   },
   bigEmoji: {
     fontSize: 120,
-    lineHeight: 140,
+    lineHeight: 168,
+    textAlign: 'center',
   },
   prompt: {
     color: Palette.inkSoft,
@@ -395,8 +425,11 @@ const styles = StyleSheet.create({
   },
   optionLetter: {
     fontSize: 64,
+    lineHeight: 80,
     fontWeight: '900',
     color: Palette.ink,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   optionLetterWrong: {
     color: '#9A2E2E',

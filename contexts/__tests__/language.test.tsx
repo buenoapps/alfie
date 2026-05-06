@@ -1,4 +1,5 @@
-import { act, render, renderHook } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act, render, renderHook, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { LanguageProvider, useLanguage } from '@/contexts/language';
@@ -8,6 +9,12 @@ function wrapper({ children }: { children: React.ReactNode }) {
 }
 
 describe('LanguageProvider / useLanguage', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    (AsyncStorage.setItem as jest.Mock).mockClear();
+    (AsyncStorage.getItem as jest.Mock).mockClear();
+  });
+
   it('defaults to English', () => {
     const { result } = renderHook(() => useLanguage(), { wrapper });
     expect(result.current.lang).toBe('en');
@@ -19,6 +26,26 @@ describe('LanguageProvider / useLanguage', () => {
     act(() => result.current.setLang('de'));
     expect(result.current.lang).toBe('de');
     expect(result.current.t('greeting')).toBe('Hallo, ich bin Alfie!');
+  });
+
+  it('persists the selected language to AsyncStorage', () => {
+    const { result } = renderHook(() => useLanguage(), { wrapper });
+    act(() => result.current.setLang('de'));
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith('alfie:language', 'de');
+  });
+
+  it('hydrates the previously persisted language on mount', async () => {
+    await AsyncStorage.setItem('alfie:language', 'de');
+    const { result } = renderHook(() => useLanguage(), { wrapper });
+    await waitFor(() => expect(result.current.lang).toBe('de'));
+  });
+
+  it('ignores invalid persisted values', async () => {
+    await AsyncStorage.setItem('alfie:language', 'fr');
+    const { result } = renderHook(() => useLanguage(), { wrapper });
+    // Briefly waiting to allow the load effect to run; lang must stay 'en'.
+    await waitFor(() => expect(AsyncStorage.getItem).toHaveBeenCalled());
+    expect(result.current.lang).toBe('en');
   });
 
   it('throws when used outside the provider', () => {

@@ -46,6 +46,42 @@ describe('Quiz screen', () => {
     expect(buttons).toHaveLength(4);
   });
 
+  it('auto-speaks the example word for the current question', () => {
+    renderQuiz();
+    expect(speak).toHaveBeenCalledWith(
+      'Apple',
+      expect.objectContaining({ language: 'en-US' })
+    );
+  });
+
+  it('speaks the word again when the emoji card is tapped', () => {
+    const { getByLabelText } = renderQuiz();
+    speak.mockClear();
+    fireEvent.press(getByLabelText('Hear the word'));
+    expect(speak).toHaveBeenCalledWith(
+      'Apple',
+      expect.objectContaining({ language: 'en-US' })
+    );
+  });
+
+  it('speaks the pressed letter on every option tap (right or wrong)', () => {
+    const { getAllByLabelText } = renderQuiz();
+    speak.mockClear();
+    const buttons = getAllByLabelText(/^Letter [A-Z]$/);
+
+    fireEvent.press(buttons[3]); // wrong
+    expect(speak).toHaveBeenLastCalledWith(
+      expect.stringMatching(/^[A-Z]\.$/),
+      expect.objectContaining({ language: 'en-US' })
+    );
+
+    fireEvent.press(buttons[0]); // correct
+    expect(speak).toHaveBeenLastCalledWith(
+      'A.',
+      expect.objectContaining({ language: 'en-US' })
+    );
+  });
+
   it('disables a wrong answer after it is tapped, without advancing', () => {
     const { getAllByLabelText, getByText } = renderQuiz();
     const buttons = getAllByLabelText(/^Letter [A-Z]$/);
@@ -61,7 +97,6 @@ describe('Quiz screen', () => {
     const { getAllByLabelText, getByText } = renderQuiz();
     const correct = getAllByLabelText(/^Letter [A-Z]$/)[0];
     fireEvent.press(correct);
-    expect(speak).toHaveBeenCalled();
 
     act(() => {
       jest.advanceTimersByTime(1000);
