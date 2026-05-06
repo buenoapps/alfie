@@ -1,50 +1,37 @@
-# Welcome to your Expo app 👋
+# Alfie — Learn the Alpha-bee-t
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A super-simple alphabet app for kids, fronted by **Alfie** the bumblebee. Tap a letter, hear it, see a friendly example word.
 
-## Get started
+Built with [Expo](https://expo.dev) + Expo Router.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then press `i` for iOS Simulator, `a` for Android emulator, or `w` for web.
 
-## Learn more
+## How it works
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Home** — Alfie greets you and shows a colorful A–Z grid. Tap any letter to open it.
+- **Letter screen** — A giant uppercase + lowercase letter, an example word with an emoji, and Alfie holding the matching block. Tap the speaker (or the letter itself) to hear it again. Use the arrows to step through A→Z.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Audio is spoken via `expo-speech` (system text-to-speech), so it works offline and on every device with a system voice.
 
-## Join the community
+## Project layout
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+app/
+  _layout.tsx        Stack navigation root
+  index.tsx          Home: Alfie greeting + A–Z grid
+  letter/[id].tsx    Letter detail screen
+components/
+  alfie.tsx          The bee mascot (react-native-svg)
+  letter-tile.tsx    A tappable A–Z grid tile
+  speaker-button.tsx Round speaker control
+constants/
+  letters.ts         A–Z entries (letter, word, emoji, color)
+  theme.ts           Color palette + fonts
+```
