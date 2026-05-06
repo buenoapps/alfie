@@ -1,41 +1,49 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export const Palette = {
+  honey: '#FFC93C',
+  honeyDark: '#E0A92A',
+  sun: '#FFF4C2',
+  cream: '#FFFBEA',
+  sky: '#BEE3F8',
+  blossom: '#FF8FB1',
+  blossomDark: '#E76A93',
+  leaf: '#7FD08F',
+  ink: '#3A2E1F',
+  inkSoft: '#6B5A3E',
+  stripe: '#5A3A1B',
+  white: '#FFFFFF',
+};
+
+const themeColors = {
+  text: Palette.ink,
+  textSoft: Palette.inkSoft,
+  background: Palette.cream,
+  tint: Palette.honeyDark,
+  icon: Palette.inkSoft,
+  tabIconDefault: Palette.inkSoft,
+  tabIconSelected: Palette.honeyDark,
+};
 
 export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+  light: themeColors,
+  dark: themeColors,
 };
+
+export const TileColors = [
+  '#FFD86B',
+  '#FFB4A8',
+  '#BEE3F8',
+  '#C4E8C2',
+  '#FFC9DE',
+  '#D7C4F5',
+];
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
