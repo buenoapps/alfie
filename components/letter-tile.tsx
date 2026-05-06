@@ -75,7 +75,10 @@ const styles = StyleSheet.create({
   },
   letter: {
     fontSize: 44,
+    lineHeight: 56,
     fontWeight: '800',
     color: Palette.ink,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
 });
