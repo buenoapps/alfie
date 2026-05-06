@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
-  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -14,16 +13,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Alfie } from '@/components/alfie';
 import { SpeakerButton } from '@/components/speaker-button';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { LETTERS, getLetterIndex } from '@/constants/letters';
+import { LETTERS, getLetterIndex, localized } from '@/constants/letters';
+import { speechLocale } from '@/constants/strings';
 import { Palette } from '@/constants/theme';
+import { useLanguage } from '@/contexts/language';
 
 export default function LetterScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { lang } = useLanguage();
 
   const index = useMemo(() => {
     const i = getLetterIndex(id ?? '');
@@ -31,6 +32,7 @@ export default function LetterScreen() {
   }, [id]);
 
   const entry = LETTERS[index];
+  const word = localized(entry, lang);
   const prev = index > 0 ? LETTERS[index - 1] : null;
   const next = index < LETTERS.length - 1 ? LETTERS[index + 1] : null;
 
@@ -38,11 +40,12 @@ export default function LetterScreen() {
 
   const speak = useCallback(() => {
     Speech.stop();
-    Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05 });
+    const locale = speechLocale(lang);
+    Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05, language: locale });
     setTimeout(() => {
-      Speech.speak(entry.word, { rate: 0.85, pitch: 1.05 });
+      Speech.speak(word.word, { rate: 0.85, pitch: 1.05, language: locale });
     }, 550);
-  }, [entry]);
+  }, [entry.letter, word.word, lang]);
 
   useEffect(() => {
     blockScale.value = 0.6;
@@ -54,7 +57,7 @@ export default function LetterScreen() {
     return () => {
       Speech.stop();
     };
-  }, [entry.letter, speak, blockScale]);
+  }, [entry.letter, lang, speak, blockScale]);
 
   const blockStyle = useAnimatedStyle(() => ({
     transform: [{ scale: blockScale.value }],
@@ -78,16 +81,12 @@ export default function LetterScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: tint(entry.color) }]}>
       <View style={styles.topBar}>
-        <RoundButton onPress={goHome} accessibilityLabel="Back to letters">
+        <RoundButton onPress={goHome} accessibilityLabel="Home">
           <IconSymbol name="house.fill" size={28} color={Palette.ink} />
         </RoundButton>
       </View>
 
       <View style={styles.content}>
-        <Animated.View entering={FadeInUp.duration(450)} style={styles.alfieWrap}>
-          <Alfie size={180} letter={entry.letter} />
-        </Animated.View>
-
         <Animated.View
           entering={FadeInDown.duration(500)}
           style={[styles.bigLetterWrap, blockStyle]}
@@ -99,9 +98,9 @@ export default function LetterScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.wordRow}>
-          <ThemedText style={styles.emoji}>{entry.emoji}</ThemedText>
+          <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
           <ThemedText type="title" style={styles.word}>
-            {entry.word}
+            {word.word}
           </ThemedText>
         </Animated.View>
 
@@ -162,7 +161,6 @@ function RoundButton({ onPress, children, disabled, accessibilityLabel }: RoundB
   );
 }
 
-// Soften any tile color by mixing with cream so it's a calm full-screen background.
 function tint(hex: string): string {
   const cleaned = hex.replace('#', '');
   if (cleaned.length !== 6) return hex;
@@ -186,12 +184,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     paddingHorizontal: 24,
     paddingBottom: 36,
-  },
-  alfieWrap: {
-    marginTop: 4,
   },
   bigLetterWrap: {
     alignItems: 'center',
