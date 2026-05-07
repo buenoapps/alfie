@@ -105,6 +105,36 @@ describe('Quiz screen', () => {
     expect(getByText('2 / 5')).toBeTruthy();
   });
 
+  it('flags the correct answer as selected before advancing (green-effect cue)', () => {
+    const { getAllByLabelText } = renderQuiz();
+    const correct = getAllByLabelText(/^Letter [A-Z]$/)[0];
+    fireEvent.press(correct);
+    // Inspect the button by re-querying — the same letter is still in the tree;
+    // the parent component re-renders with the correct state set.
+    const flaggedCorrect = getAllByLabelText(/^Letter [A-Z]$/)[0];
+    expect(flaggedCorrect.props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true })
+    );
+  });
+
+  it('locks all options once the correct answer has been chosen', () => {
+    const { getAllByLabelText } = renderQuiz();
+    const buttons = getAllByLabelText(/^Letter [A-Z]$/);
+    fireEvent.press(buttons[0]); // correct
+
+    const refreshed = getAllByLabelText(/^Letter [A-Z]$/);
+    // The non-correct ones are now disabled too, so a late tap can't fire.
+    expect(refreshed[1].props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true })
+    );
+    expect(refreshed[2].props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true })
+    );
+    expect(refreshed[3].props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true })
+    );
+  });
+
   it('shows the done view with score 5 after answering all five correctly', () => {
     const { getAllByLabelText, getByText } = renderQuiz();
     for (let i = 0; i < 5; i++) {

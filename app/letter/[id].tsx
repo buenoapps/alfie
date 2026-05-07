@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -18,18 +18,21 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LETTERS, getLetterIndex, localized } from '@/constants/letters';
 import { speechLocale } from '@/constants/strings';
-import { Palette } from '@/constants/theme';
+import { Palette, tint, useTheme } from '@/constants/theme';
 import { useLanguage } from '@/contexts/language';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function LetterScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang } = useLanguage();
+  const theme = useTheme();
+  const scheme = useColorScheme() ?? 'light';
 
-  const index = useMemo(() => {
+  const [index, setIndex] = useState(() => {
     const i = getLetterIndex(id ?? '');
     return i === -1 ? 0 : i;
-  }, [id]);
+  });
 
   const entry = LETTERS[index];
   const word = localized(entry, lang);
@@ -67,12 +70,12 @@ export default function LetterScreen() {
     transform: [{ scale: blockScale.value }],
   }));
 
-  const goTo = (letter: string) => {
+  const goToIndex = (nextIndex: number) => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     blockScale.value = withTiming(0.85, { duration: 90 });
-    router.replace(`/letter/${letter}`);
+    setIndex(nextIndex);
   };
 
   const goHome = () => {
@@ -83,7 +86,7 @@ export default function LetterScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: tint(entry.color) }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: tint(entry.color, scheme) }]}>
       <View style={styles.topBar}>
         <RoundButton onPress={goHome} accessibilityLabel="Home">
           <IconSymbol name="house.fill" size={28} color={Palette.ink} />
@@ -93,7 +96,7 @@ export default function LetterScreen() {
       <View style={styles.content}>
         <Animated.View entering={FadeInDown.duration(500)} style={styles.wordRow}>
           <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
-          <ThemedText type="title" style={styles.word}>
+          <ThemedText type="title" style={[styles.word, { color: theme.text }]}>
             {word.word}
           </ThemedText>
         </Animated.View>
@@ -110,7 +113,7 @@ export default function LetterScreen() {
 
         <View style={styles.controls}>
           <RoundButton
-            onPress={() => prev && goTo(prev.letter)}
+            onPress={() => prev && goToIndex(index - 1)}
             disabled={!prev}
             accessibilityLabel={prev ? `Previous letter ${prev.letter}` : 'No previous letter'}
           >
@@ -124,7 +127,7 @@ export default function LetterScreen() {
           <SpeakerButton onPress={speak} />
 
           <RoundButton
-            onPress={() => next && goTo(next.letter)}
+            onPress={() => next && goToIndex(index + 1)}
             disabled={!next}
             accessibilityLabel={next ? `Next letter ${next.letter}` : 'No next letter'}
           >
@@ -165,17 +168,6 @@ function RoundButton({ onPress, children, disabled, accessibilityLabel }: RoundB
   );
 }
 
-function tint(hex: string): string {
-  const cleaned = hex.replace('#', '');
-  if (cleaned.length !== 6) return hex;
-  const r = parseInt(cleaned.slice(0, 2), 16);
-  const g = parseInt(cleaned.slice(2, 4), 16);
-  const b = parseInt(cleaned.slice(4, 6), 16);
-  const mix = (c: number) => Math.round(c * 0.45 + 255 * 0.55);
-  const toHex = (c: number) => c.toString(16).padStart(2, '0');
-  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
-}
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -201,9 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 72,
     lineHeight: 96,
   },
-  word: {
-    color: Palette.ink,
-  },
+  word: {},
   bigLetterWrap: {
     alignItems: 'center',
   },

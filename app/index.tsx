@@ -8,12 +8,13 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { LetterTile } from '@/components/letter-tile';
 import { ThemedText } from '@/components/themed-text';
 import { LETTERS } from '@/constants/letters';
-import { Palette } from '@/constants/theme';
+import { Palette, useTheme } from '@/constants/theme';
 import { useLanguage } from '@/contexts/language';
 
 export default function Home() {
   const router = useRouter();
   const { t } = useLanguage();
+  const theme = useTheme();
 
   const startQuiz = () => {
     if (process.env.EXPO_OS === 'ios') {
@@ -23,7 +24,10 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: theme.screen }]}
+      edges={['top', 'left', 'right']}
+    >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <LanguageToggle />
@@ -31,10 +35,12 @@ export default function Home() {
 
         <View style={styles.header}>
           <Alfie size={180} letter="A" />
-          <ThemedText type="title" style={styles.greeting}>
+          <ThemedText type="title" style={[styles.greeting, { color: theme.text }]}>
             {t('greeting')}
           </ThemedText>
-          <ThemedText style={styles.subgreeting}>{t('tapToLearn')}</ThemedText>
+          <ThemedText style={[styles.subgreeting, { color: theme.textSoft }]}>
+            {t('tapToLearn')}
+          </ThemedText>
 
           <Pressable
             accessibilityRole="button"
@@ -66,7 +72,6 @@ export default function Home() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Palette.cream,
   },
   content: {
     paddingHorizontal: 16,
@@ -84,12 +89,10 @@ const styles = StyleSheet.create({
   },
   greeting: {
     marginTop: 8,
-    color: Palette.ink,
     textAlign: 'center',
   },
   subgreeting: {
     marginTop: 4,
-    color: Palette.inkSoft,
     textAlign: 'center',
   },
   playButton: {
