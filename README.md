@@ -84,3 +84,14 @@ hooks/
 - `react-native-svg` for the mascot.
 - `@react-native-async-storage/async-storage` for persisted language and mute state.
 - No backend; everything runs on-device.
+
+## App Store metadata
+
+The on-device display name is `expo.name` in `app.json` (currently **Alfie**). The App Store Connect listing — the long-form title shown on the store page — is managed via [EAS Metadata](https://docs.expo.dev/eas/metadata/) using `store.config.json` at the project root.
+
+```bash
+npx eas metadata:push       # push store.config.json → App Store Connect
+npx eas metadata:pull       # pull current store metadata → store.config.json
+```
+
+`store.config.json` currently sets the App Store title to **"Alfie - alphabet learning app"** for `en-US`. To add a German listing, extend `apple.info` with a `de-DE` entry; to set the subtitle / description / keywords, add them under the same locale block (run `eas metadata:lint` to verify).
