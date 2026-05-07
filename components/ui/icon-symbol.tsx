@@ -13,6 +13,7 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'chevron.left': 'chevron-left',
   'speaker.wave.2.fill': 'volume-up',
+  'speaker.slash.fill': 'volume-off',
 } as IconMapping;
 
 export function IconSymbol({

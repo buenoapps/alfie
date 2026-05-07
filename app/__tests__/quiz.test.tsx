@@ -1,8 +1,10 @@
-import { act, fireEvent, render } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 
 import QuizScreen from '@/app/quiz';
+import { AudioProvider } from '@/contexts/audio';
 import { LanguageProvider } from '@/contexts/language';
 
 const speak = Speech.speak as unknown as jest.Mock;
@@ -11,13 +13,16 @@ const stop = Speech.stop as unknown as jest.Mock;
 function renderQuiz() {
   return render(
     <LanguageProvider>
-      <QuizScreen />
+      <AudioProvider>
+        <QuizScreen />
+      </AudioProvider>
     </LanguageProvider>
   );
 }
 
 describe('Quiz screen', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
     jest.useFakeTimers();
     speak.mockClear();
     stop.mockClear();
@@ -172,5 +177,34 @@ describe('Quiz screen', () => {
     const { getByLabelText } = renderQuiz();
     fireEvent.press(getByLabelText('Home'));
     expect(router.back).toHaveBeenCalled();
+  });
+
+  describe('with audio muted', () => {
+    beforeEach(async () => {
+      await AsyncStorage.setItem('alfie:audio-enabled', '0');
+    });
+
+    it('does not speak the word on mount', async () => {
+      const { getAllByLabelText } = renderQuiz();
+      // Wait for the AudioProvider hydration to land before asserting.
+      await waitFor(() =>
+        expect(getAllByLabelText(/^Letter [A-Z]$/)).toHaveLength(4)
+      );
+      speak.mockClear();
+      // Re-trigger the question's auto-speak effect by tapping the emoji.
+      fireEvent.press(getAllByLabelText('Hear the word')[0]);
+      expect(speak).not.toHaveBeenCalled();
+    });
+
+    it('does not speak the letter on option taps', async () => {
+      const { getAllByLabelText } = renderQuiz();
+      await waitFor(() =>
+        expect(getAllByLabelText(/^Letter [A-Z]$/)).toHaveLength(4)
+      );
+      speak.mockClear();
+      fireEvent.press(getAllByLabelText(/^Letter [A-Z]$/)[3]); // wrong
+      fireEvent.press(getAllByLabelText(/^Letter [A-Z]$/)[0]); // correct
+      expect(speak).not.toHaveBeenCalled();
+    });
   });
 });

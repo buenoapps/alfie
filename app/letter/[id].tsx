@@ -19,6 +19,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LETTERS, getLetterIndex, localized } from '@/constants/letters';
 import { speechLocale } from '@/constants/strings';
 import { Palette, tint, useTheme } from '@/constants/theme';
+import { useAudio } from '@/contexts/audio';
 import { useLanguage } from '@/contexts/language';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -26,6 +27,7 @@ export default function LetterScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang } = useLanguage();
+  const { enabled: audioEnabled, toggle: toggleAudio } = useAudio();
   const theme = useTheme();
   const scheme = useColorScheme() ?? 'light';
 
@@ -42,6 +44,7 @@ export default function LetterScreen() {
   const blockScale = useSharedValue(0.6);
 
   const speak = useCallback(() => {
+    if (!audioEnabled) return;
     Speech.stop();
     const locale = speechLocale(lang);
     Speech.speak(word.word, {
@@ -52,7 +55,7 @@ export default function LetterScreen() {
         Speech.speak(`${entry.letter}.`, { rate: 0.85, pitch: 1.05, language: locale });
       },
     });
-  }, [entry.letter, word.word, lang]);
+  }, [audioEnabled, entry.letter, word.word, lang]);
 
   useEffect(() => {
     blockScale.value = 0.6;
@@ -94,11 +97,18 @@ export default function LetterScreen() {
       </View>
 
       <View style={styles.content}>
-        <Animated.View entering={FadeInDown.duration(500)} style={styles.wordRow}>
-          <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
-          <ThemedText type="title" style={[styles.word, { color: theme.text }]}>
-            {word.word}
-          </ThemedText>
+        <Animated.View entering={FadeInDown.duration(500)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Hear the word"
+            onPress={speak}
+            style={styles.wordRow}
+          >
+            <ThemedText style={styles.emoji}>{word.emoji}</ThemedText>
+            <ThemedText type="title" style={[styles.word, { color: theme.text }]}>
+              {word.word}
+            </ThemedText>
+          </Pressable>
         </Animated.View>
 
         <Animated.View
@@ -124,7 +134,7 @@ export default function LetterScreen() {
             />
           </RoundButton>
 
-          <SpeakerButton onPress={speak} />
+          <SpeakerButton onPress={toggleAudio} muted={!audioEnabled} />
 
           <RoundButton
             onPress={() => next && goToIndex(index + 1)}

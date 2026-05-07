@@ -14,9 +14,10 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export type SpeakerButtonProps = {
   onPress: () => void;
   size?: number;
+  muted?: boolean;
 };
 
-export function SpeakerButton({ onPress, size = 72 }: SpeakerButtonProps) {
+export function SpeakerButton({ onPress, size = 72, muted = false }: SpeakerButtonProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -33,7 +34,8 @@ export function SpeakerButton({ onPress, size = 72 }: SpeakerButtonProps) {
   return (
     <AnimatedPressable
       accessibilityRole="button"
-      accessibilityLabel="Hear it again"
+      accessibilityLabel={muted ? 'Unmute audio' : 'Mute audio'}
+      accessibilityState={{ selected: muted }}
       onPress={handlePress}
       onPressIn={() => {
         scale.value = withSpring(0.9, { damping: 12, stiffness: 240 });
@@ -43,11 +45,16 @@ export function SpeakerButton({ onPress, size = 72 }: SpeakerButtonProps) {
       }}
       style={[
         styles.button,
+        muted && styles.buttonMuted,
         { width: size, height: size, borderRadius: size / 2 },
         animatedStyle,
       ]}
     >
-      <IconSymbol name="speaker.wave.2.fill" size={size * 0.5} color={Palette.white} />
+      <IconSymbol
+        name={muted ? 'speaker.slash.fill' : 'speaker.wave.2.fill'}
+        size={size * 0.5}
+        color={Palette.white}
+      />
     </AnimatedPressable>
   );
 }
@@ -64,5 +71,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
+  },
+  buttonMuted: {
+    backgroundColor: Palette.inkSoft,
   },
 });

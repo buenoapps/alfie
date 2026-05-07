@@ -1,8 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 
 import LetterScreen from '@/app/letter/[id]';
+import { AudioProvider } from '@/contexts/audio';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 
 const mockedParams = useLocalSearchParams as unknown as jest.Mock;
@@ -12,8 +14,10 @@ const stop = Speech.stop as unknown as jest.Mock;
 function Wrapped({ initialLang = 'en' as 'en' | 'de' }) {
   return (
     <LanguageProvider>
-      <SetLang lang={initialLang} />
-      <LetterScreen />
+      <AudioProvider>
+        <SetLang lang={initialLang} />
+        <LetterScreen />
+      </AudioProvider>
     </LanguageProvider>
   );
 }
@@ -25,7 +29,8 @@ function SetLang({ lang }: { lang: 'en' | 'de' }) {
 }
 
 describe('Letter detail screen', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
     speak.mockClear();
     stop.mockClear();
     const router = useRouter() as unknown as { replace: jest.Mock; back: jest.Mock };
@@ -49,6 +54,16 @@ describe('Letter detail screen', () => {
       expect.objectContaining({ language: 'en-US' })
     );
     expect(speak.mock.calls[0][0]).toBe('Bee');
+  });
+
+  it('replays the word when the emoji + word row is tapped', () => {
+    const { getByLabelText } = render(<Wrapped />);
+    speak.mockClear();
+    fireEvent.press(getByLabelText('Hear the word'));
+    expect(speak).toHaveBeenCalledWith(
+      'Bee',
+      expect.objectContaining({ language: 'en-US' })
+    );
   });
 
   it('replaces the page content with the next letter (no navigation)', () => {
@@ -75,7 +90,6 @@ describe('Letter detail screen', () => {
     mockedParams.mockReturnValue({ id: 'A' });
     const { getByLabelText, getByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('No previous letter'));
-    // Stays on A.
     expect(getByText('Apple')).toBeTruthy();
   });
 
@@ -83,7 +97,6 @@ describe('Letter detail screen', () => {
     mockedParams.mockReturnValue({ id: 'Z' });
     const { getByLabelText, getByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('No next letter'));
-    // Stays on Z.
     expect(getByText('Zebra')).toBeTruthy();
   });
 
@@ -92,5 +105,29 @@ describe('Letter detail screen', () => {
     const { getByLabelText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('Home'));
     expect(router.back).toHaveBeenCalled();
+  });
+
+  it('toggles audio off when the speaker button is pressed', () => {
+    const { getByLabelText } = render(<Wrapped />);
+    speak.mockClear();
+    // Speaker starts unmuted; pressing it mutes.
+    fireEvent.press(getByLabelText('Mute audio'));
+    // Tapping the emoji row no longer speaks.
+    fireEvent.press(getByLabelText('Hear the word'));
+    expect(speak).not.toHaveBeenCalled();
+    // Speaker now reports its muted state.
+    expect(getByLabelText('Unmute audio')).toBeTruthy();
+  });
+
+  it('un-mutes when the muted speaker button is pressed again', () => {
+    const { getByLabelText } = render(<Wrapped />);
+    fireEvent.press(getByLabelText('Mute audio'));
+    fireEvent.press(getByLabelText('Unmute audio'));
+    speak.mockClear();
+    fireEvent.press(getByLabelText('Hear the word'));
+    expect(speak).toHaveBeenCalledWith(
+      'Bee',
+      expect.objectContaining({ language: 'en-US' })
+    );
   });
 });

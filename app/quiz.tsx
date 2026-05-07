@@ -20,6 +20,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LETTERS, type LetterEntry, localized } from '@/constants/letters';
 import { speechLocale } from '@/constants/strings';
 import { Palette, useTheme } from '@/constants/theme';
+import { useAudio } from '@/contexts/audio';
 import { useLanguage } from '@/contexts/language';
 
 const ROUND_SIZE = 5;
@@ -53,6 +54,7 @@ function buildRound(): Question[] {
 export default function QuizScreen() {
   const router = useRouter();
   const { lang, t } = useLanguage();
+  const { enabled: audioEnabled } = useAudio();
   const theme = useTheme();
 
   const [questions, setQuestions] = useState<Question[]>(() => buildRound());
@@ -68,19 +70,21 @@ export default function QuizScreen() {
 
   const speakWord = useCallback(
     (entry: LetterEntry) => {
+      if (!audioEnabled) return;
       const w = localized(entry, lang);
       Speech.stop();
       Speech.speak(w.word, { rate: 0.85, pitch: 1.05, language: speechLocale(lang) });
     },
-    [lang]
+    [audioEnabled, lang]
   );
 
   const speakLetter = useCallback(
     (letter: string) => {
+      if (!audioEnabled) return;
       Speech.stop();
       Speech.speak(`${letter}.`, { rate: 0.85, pitch: 1.05, language: speechLocale(lang) });
     },
-    [lang]
+    [audioEnabled, lang]
   );
 
   // Auto-speak the word whenever a new question appears.
