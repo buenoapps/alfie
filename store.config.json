@@ -3,7 +3,12 @@
   "apple": {
     "info": {
       "en-US": {
-        "title": "Alfie - alphabet learning app"
+        "title": "Alfie - alphabet learning app",
+        "description": "Meet Alfie, the friendly bumblebee who helps little kids learn their first letters and words.\n\n✨ Learn the alphabet — Tap a letter to see it big, hear it spoken, and discover a friendly example word with a colorful emoji.\n\n📖 Learn short words — Practice simple, super-short words like Mum, Dad, Sun, and Cat. Each one is read aloud in a clear, kid-friendly voice.\n\n🎮 Play and learn — Two playful quizzes (one for letters, one for words) reinforce what your child has just learned. The right answer flashes green; wrong taps gently shake red.\n\n🌍 English and German — Switch instantly between languages with a single tap. Alfie speaks both!\n\n🌙 Day or night — Alfie automatically follows your device's light or dark mode.\n\n🤫 Mute when you need it — A clear speaker toggle silences audio for quiet times. Alfie remembers your choice.\n\nNo ads. No in-app purchases. No accounts. Just Alfie and your child, learning together."
+      },
+      "de-DE": {
+        "title": "Alfie - Alphabet lernen",
+        "description": "Lernt Alfie kennen, die freundliche Biene, die kleinen Kindern dabei hilft, ihre ersten Buchstaben und Wörter zu lernen.\n\n✨ Das Alphabet entdecken — Tippe einen Buchstaben an, um ihn groß zu sehen, gesprochen zu hören und ein passendes Beispielwort mit buntem Emoji kennenzulernen.\n\n📖 Kurze Wörter lernen — Übe einfache, sehr kurze Wörter wie Mama, Papa, Bus oder Auto. Jedes Wort wird mit einer klaren, kindgerechten Stimme vorgelesen.\n\n🎮 Spielerisch üben — Zwei kleine Spiele (eines für Buchstaben, eines für Wörter) festigen das Gelernte. Die richtige Antwort leuchtet grün; falsche Tipps wackeln freundlich rot.\n\n🌍 Deutsch und Englisch — Wechsle mit nur einem Tipp zwischen den Sprachen. Alfie spricht beides!\n\n🌙 Tag oder Nacht — Alfie passt sich automatisch dem hellen oder dunklen Modus deines Geräts an.\n\n🤫 Stumm-Modus — Ein klarer Lautsprecher-Schalter schaltet den Ton aus, wenn es leise sein soll. Alfie merkt sich deine Auswahl.\n\nKeine Werbung. Keine In-App-Käufe. Keine Konten. Einfach Alfie und dein Kind beim gemeinsamen Lernen."
       }
     }
   }
