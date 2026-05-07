@@ -1,13 +1,11 @@
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Alfie } from '@/components/alfie';
 import { LanguageToggle } from '@/components/language-toggle';
-import { LetterTile } from '@/components/letter-tile';
+import { LevelCard } from '@/components/level-card';
 import { ThemedText } from '@/components/themed-text';
-import { LETTERS } from '@/constants/letters';
 import { Palette, useTheme } from '@/constants/theme';
 import { useLanguage } from '@/contexts/language';
 
@@ -15,13 +13,6 @@ export default function Home() {
   const router = useRouter();
   const { t } = useLanguage();
   const theme = useTheme();
-
-  const startQuiz = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-    router.push('/quiz');
-  };
 
   return (
     <SafeAreaView
@@ -39,30 +30,27 @@ export default function Home() {
             {t('greeting')}
           </ThemedText>
           <ThemedText style={[styles.subgreeting, { color: theme.textSoft }]}>
-            {t('tapToLearn')}
+            {t('pickLevel')}
           </ThemedText>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('play')}
-            onPress={startQuiz}
-            style={({ pressed }) => [styles.playButton, pressed && styles.playButtonPressed]}
-          >
-            <ThemedText style={styles.playEmoji}>🎮</ThemedText>
-            <ThemedText style={styles.playLabel}>{t('play')}</ThemedText>
-          </Pressable>
         </View>
 
-        <View style={styles.grid}>
-          {LETTERS.map(({ letter, color }) => (
-            <View key={letter} style={styles.cell}>
-              <LetterTile
-                letter={letter}
-                color={color}
-                onPress={() => router.push(`/letter/${letter}`)}
-              />
-            </View>
-          ))}
+        <View style={styles.levels}>
+          <LevelCard
+            emoji="🔤"
+            title={t('levelLetters')}
+            subtitle={t('levelLettersSubtitle')}
+            background="#FFE9A8"
+            border={Palette.honey}
+            onPress={() => router.push('/alphabet')}
+          />
+          <LevelCard
+            emoji="📖"
+            title={t('levelWords')}
+            subtitle={t('levelWordsSubtitle')}
+            background="#FFD6E5"
+            border={Palette.blossom}
+            onPress={() => router.push('/words')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -95,41 +83,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
-  playButton: {
-    marginTop: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 999,
-    backgroundColor: Palette.blossom,
-    borderWidth: 3,
-    borderColor: Palette.blossomDark,
-    shadowColor: Palette.ink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  playButtonPressed: {
-    transform: [{ scale: 0.96 }],
-  },
-  playEmoji: {
-    fontSize: 24,
-  },
-  playLabel: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Palette.white,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-  },
-  cell: {
-    width: '25%',
-    padding: 6,
+  levels: {
+    gap: 16,
   },
 });

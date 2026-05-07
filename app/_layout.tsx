@@ -25,8 +25,12 @@ export default function RootLayout() {
               }}
             >
               <Stack.Screen name="index" />
+              <Stack.Screen name="alphabet" options={{ animation: 'fade_from_bottom' }} />
               <Stack.Screen name="letter/[id]" options={{ animation: 'fade_from_bottom' }} />
               <Stack.Screen name="quiz" options={{ animation: 'fade_from_bottom' }} />
+              <Stack.Screen name="words" options={{ animation: 'fade_from_bottom' }} />
+              <Stack.Screen name="word/[id]" options={{ animation: 'fade_from_bottom' }} />
+              <Stack.Screen name="word-quiz" options={{ animation: 'fade_from_bottom' }} />
             </Stack>
             <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           </AudioProvider>

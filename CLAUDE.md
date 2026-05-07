@@ -4,19 +4,23 @@ Notes for future agents working in this repo. Read README.md for the user-facing
 
 ## Project
 
-Expo SDK 54 / React 19 / React Native 0.81 / expo-router 6. A single-purpose alphabet learning app for kids.
+Expo SDK 54 / React 19 / React Native 0.81 / expo-router 6. A two-level learning app for kids: alphabet (A–Z) and short words.
 
-Three screens, all under `app/`:
+Screens, all under `app/`:
 
-- `app/index.tsx` — home (Alfie + A–Z grid + Play button + EN/DE toggle).
+- `app/index.tsx` — home: Alfie + EN/DE toggle + 2 `LevelCard`s (Letters, Words). No grid here anymore.
+- `app/alphabet.tsx` — A–Z tile grid + Play letter game.
 - `app/letter/[id].tsx` — letter detail. **Prev/next swap content in place via local state**; the URL stays at the initial letter. Don't reintroduce `router.replace` for stepping.
-- `app/quiz.tsx` — 5-question emoji → 4-letter-button quiz.
+- `app/quiz.tsx` — letter quiz (5 questions, 4 letter buttons each).
+- `app/words.tsx` — language-aware short-word grid (3 cols, ≤ 4-char words) + Play word game.
+- `app/word/[id].tsx` — word detail. Same in-place stepping pattern as letter detail.
+- `app/word-quiz.tsx` — word quiz (5 questions, 4 word buttons each). Structurally a duplicate of `quiz.tsx` for letters — keep them separate, do not abstract into one generic quiz.
 
 ## Commands
 
 ```bash
 npm start                    # Expo dev server
-npm test                     # Jest (76 tests / 14 suites)
+npm test                     # Jest (130 tests / 20 suites)
 npm run lint                 # expo lint
 npx tsc --noEmit             # type-check
 npx expo export --platform web --output-dir dist   # build sanity check
@@ -43,8 +47,8 @@ Practical playbook for each round of changes:
 - **Styling**: theme colors come from `constants/theme.ts`. Read screen / text / textSoft via `useTheme()` and pass them inline (`style={[styles.x, { backgroundColor: theme.screen }]}`) rather than baking them into `StyleSheet.create`. Brand colors (honey / blossom / sky) live on `Palette` and are theme-agnostic.
 - **Cards stay white in both light and dark mode** — that's the visual identity. Only screen backgrounds and outer body text flip.
 - **Tile pastels (`TileColors`) are the same in both modes**; the dark text on them works on either.
-- **Letter content** (per-language word + emoji + color) is in `constants/letters.ts`. Add new languages by extending the `Language` union and the `EN`/`DE`-style maps; UI strings live in `constants/strings.ts`.
-- **Speech**: always pass `language: speechLocale(lang)`. Word first, letter second on the detail screen (chained via `onDone`). On the quiz, `speakWord` runs on each new question + on emoji tap; `speakLetter` runs on every option tap.
+- **Letter content** (per-language word + emoji + color) is in `constants/letters.ts`. **Word content** is in `constants/words.ts` — lists are independent per language (not translations of each other) and every word is ≤ 4 characters. UI strings live in `constants/strings.ts`. Add new languages by extending the `Language` union and adding parallel maps in all three.
+- **Speech**: always pass `language: speechLocale(lang)`. On letter detail, word first, letter second (chained via `onDone`). On the letter quiz: `speakWord` per new question + on emoji tap; `speakLetter` on every option tap. On the word quiz: `speakWord(answer)` per new question; `speakChoice(word)` on every option tap. All call sites must check `useAudio().enabled` (or guard inside the speak callbacks) so the global mute respects every path.
 - **Haptics** are gated on `process.env.EXPO_OS === 'ios'`; preserve this guard.
 - **Animations**: react-native-reanimated only. Patterns to copy: `withSequence(...)` for shake / pulse, `useSharedValue` + `useAnimatedStyle` on a wrapping `Animated.View`. Reanimated is mocked in tests so animations don't actually run.
 - **Comments**: don't add narrative comments; the code is small. Only comment when the *why* isn't obvious.
@@ -61,8 +65,9 @@ Jest + jest-expo + `@testing-library/react-native`. Setup file is `jest.setup.js
 Gotchas:
 
 - `react-native-svg` text content (e.g. the letter on Alfie's block) is **not** reachable via `getByText` — assert against the JSON dump (`JSON.stringify(tree.toJSON())`) instead.
-- The quiz uses `shuffle()` (Fisher-Yates). Tests stub `Math.random` to `0.9999` so the shuffle becomes a no-op — that puts the answer at index 0 of `options` and lets `[A,B,C,D,E]` be the question order. If you change the shuffle, fix this.
-- Some tests intentionally don't `await` the AsyncStorage hydration in `LanguageProvider`; React 19 prints an `act()` warning. It's benign — don't refactor every test to silence it.
+- The quiz uses `shuffle()` (Fisher-Yates). Tests stub `Math.random` to `0.9999` so the shuffle becomes a no-op — that puts the answer at index 0 of `options` and lets the first N items of the source list be the question order. Both `quiz.tsx` and `word-quiz.tsx` rely on this; if you change the shuffle, fix both.
+- Some tests intentionally don't `await` the AsyncStorage hydration in `LanguageProvider` / `AudioProvider`; React 19 prints an `act()` warning. It's benign — don't refactor every test to silence it.
+- Async hydration of `AudioProvider` is **after** the screen's mount-speak effect. To assert mute behavior in tests, write the storage value first, render, then `await waitFor(() => getByLabelText('Unmute audio'))` before `mockClear()`-ing `Speech.speak` and triggering the action you actually want to verify (see `app/__tests__/word.test.tsx`).
 
 ## Things to avoid
 
@@ -79,7 +84,9 @@ Gotchas:
 | --- | --- |
 | Add a screen | `app/<name>.tsx` + a `<Stack.Screen>` in `app/_layout.tsx` |
 | Add or tweak letter data | `constants/letters.ts` |
+| Add or tweak word data | `constants/words.ts` (per-language, ≤ 4 chars, lowercase id) |
 | Add or tweak UI strings | `constants/strings.ts` |
 | Add a theme color | `constants/theme.ts` (extend both `Colors.light` and `Colors.dark`) |
 | New animation | Copy the shake/pulse pattern in `app/quiz.tsx` |
-| Persist new state | `AsyncStorage` via the `language.tsx` pattern (load on mount, write on change) |
+| Persist new state | `AsyncStorage` via the `language.tsx` / `audio.tsx` pattern (load on mount, write on change) |
+| Add a learning level | New `app/<level>.tsx` (grid + Play CTA) + `app/<level>-quiz.tsx` + a third `LevelCard` on home; mirror the alphabet/words structure |

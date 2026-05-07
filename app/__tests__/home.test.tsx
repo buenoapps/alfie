@@ -21,34 +21,38 @@ describe('Home screen', () => {
   it('greets in English by default', () => {
     const { getByText } = renderHome();
     expect(getByText("Hi, I'm Alfie!")).toBeTruthy();
-    expect(getByText('Tap a letter to learn it')).toBeTruthy();
+    expect(getByText('Pick a level')).toBeTruthy();
   });
 
-  it('renders a tile for every letter A–Z', () => {
-    const { getByLabelText } = renderHome();
-    for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-      expect(getByLabelText(`Letter ${letter}`)).toBeTruthy();
-    }
+  it('renders the two level cards', () => {
+    const { getByText } = renderHome();
+    expect(getByText('Letters')).toBeTruthy();
+    expect(getByText('Learn the alphabet')).toBeTruthy();
+    expect(getByText('Words')).toBeTruthy();
+    expect(getByText('Short, simple words')).toBeTruthy();
   });
 
-  it('navigates to /letter/<letter> when a tile is tapped', () => {
+  it('navigates to /alphabet when the Letters card is tapped', () => {
     const router = useRouter() as unknown as { push: jest.Mock };
     const { getByLabelText } = renderHome();
-    fireEvent.press(getByLabelText('Letter B'));
-    expect(router.push).toHaveBeenCalledWith('/letter/B');
+    fireEvent.press(getByLabelText('Letters'));
+    expect(router.push).toHaveBeenCalledWith('/alphabet');
   });
 
-  it('navigates to /quiz when the Play button is tapped', () => {
+  it('navigates to /words when the Words card is tapped', () => {
     const router = useRouter() as unknown as { push: jest.Mock };
     const { getByLabelText } = renderHome();
-    fireEvent.press(getByLabelText('Play a game'));
-    expect(router.push).toHaveBeenCalledWith('/quiz');
+    fireEvent.press(getByLabelText('Words'));
+    expect(router.push).toHaveBeenCalledWith('/words');
   });
 
-  it('switches greeting to German when the toggle is pressed', () => {
+  it('flips strings to German when the toggle is pressed', () => {
     const { getByText, getByLabelText, queryByText } = renderHome();
     fireEvent.press(getByLabelText('Language DE'));
     expect(getByText('Hallo, ich bin Alfie!')).toBeTruthy();
+    expect(getByText('Wähle eine Stufe')).toBeTruthy();
+    expect(getByText('Buchstaben')).toBeTruthy();
+    expect(getByText('Wörter')).toBeTruthy();
     expect(queryByText("Hi, I'm Alfie!")).toBeNull();
   });
 });
