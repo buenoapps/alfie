@@ -84,3 +84,19 @@ hooks/
 - `react-native-svg` for the mascot.
 - `@react-native-async-storage/async-storage` for persisted language and mute state.
 - No backend; everything runs on-device.
+
+## App Store metadata
+
+The on-device display name is `expo.name` in `app.json` (currently **Alfie**). The App Store Connect listing — the long-form title shown on the store page — is managed via [EAS Metadata](https://docs.expo.dev/eas/metadata/) using `store.config.json` at the project root.
+
+```bash
+npx eas metadata:push       # push store.config.json → App Store Connect
+npx eas metadata:pull       # pull current store metadata → store.config.json
+```
+
+`store.config.json` currently ships titles and descriptions for `en-US` and `de-DE`:
+
+- **en-US**: title "Alfie - alphabet learning app" + a multi-paragraph description.
+- **de-DE**: title "Alfie - Alphabet lernen" + a parallel German description.
+
+To add subtitle / keywords / promotional text / release notes, extend the same locale blocks (run `npx eas metadata:lint` to verify before pushing). Apple caps the title at 30 chars, the subtitle at 30 chars, and the description at 4000 chars.
