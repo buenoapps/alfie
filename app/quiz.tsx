@@ -19,7 +19,7 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LETTERS, type LetterEntry, localized } from '@/constants/letters';
 import { speechLocale } from '@/constants/strings';
-import { Palette } from '@/constants/theme';
+import { Palette, useTheme } from '@/constants/theme';
 import { useLanguage } from '@/contexts/language';
 
 const ROUND_SIZE = 5;
@@ -53,10 +53,12 @@ function buildRound(): Question[] {
 export default function QuizScreen() {
   const router = useRouter();
   const { lang, t } = useLanguage();
+  const theme = useTheme();
 
   const [questions, setQuestions] = useState<Question[]>(() => buildRound());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wrongChoices, setWrongChoices] = useState<Set<string>>(new Set());
+  const [correctChoice, setCorrectChoice] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,7 +97,7 @@ export default function QuizScreen() {
   }, []);
 
   const handleChoice = (letter: string) => {
-    if (!current || done) return;
+    if (!current || done || correctChoice) return;
     speakLetter(letter);
 
     const correct = letter === current.answer.letter;
@@ -115,6 +117,7 @@ export default function QuizScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    setCorrectChoice(letter);
     if (wrongChoices.size === 0) {
       setScore((s) => s + 1);
     }
@@ -125,6 +128,7 @@ export default function QuizScreen() {
       } else {
         setCurrentIndex((i) => i + 1);
         setWrongChoices(new Set());
+        setCorrectChoice(null);
       }
     }, 900);
   };
@@ -134,6 +138,7 @@ export default function QuizScreen() {
     setQuestions(buildRound());
     setCurrentIndex(0);
     setWrongChoices(new Set());
+    setCorrectChoice(null);
     setScore(0);
     setDone(false);
   };
@@ -150,12 +155,12 @@ export default function QuizScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.screen }]}>
       <View style={styles.topBar}>
         <RoundButton onPress={goHome} accessibilityLabel={t('home')}>
           <IconSymbol name="house.fill" size={28} color={Palette.ink} />
         </RoundButton>
-        <ThemedText type="subtitle" style={styles.title}>
+        <ThemedText type="subtitle" style={[styles.title, { color: theme.text }]}>
           {t('quizTitle')}
         </ThemedText>
         <View style={styles.progressPill}>
@@ -174,6 +179,7 @@ export default function QuizScreen() {
           prompt={t('whichLetter')}
           options={current.options}
           wrongChoices={wrongChoices}
+          correctChoice={correctChoice}
           onChoose={handleChoice}
           onEmojiPress={handleEmojiPress}
         />
@@ -187,6 +193,7 @@ type QuestionViewProps = {
   prompt: string;
   options: string[];
   wrongChoices: Set<string>;
+  correctChoice: string | null;
   onChoose: (letter: string) => void;
   onEmojiPress: () => void;
 };
@@ -196,9 +203,11 @@ function QuestionView({
   prompt,
   options,
   wrongChoices,
+  correctChoice,
   onChoose,
   onEmojiPress,
 }: QuestionViewProps) {
+  const theme = useTheme();
   return (
     <Animated.View entering={FadeIn.duration(300)} style={styles.questionContent}>
       <Pressable
@@ -209,7 +218,7 @@ function QuestionView({
       >
         <ThemedText style={styles.bigEmoji}>{emoji}</ThemedText>
       </Pressable>
-      <ThemedText type="subtitle" style={styles.prompt}>
+      <ThemedText type="subtitle" style={[styles.prompt, { color: theme.textSoft }]}>
         {prompt}
       </ThemedText>
 
@@ -219,6 +228,8 @@ function QuestionView({
             <OptionButton
               letter={letter}
               wrong={wrongChoices.has(letter)}
+              correct={correctChoice === letter}
+              disabled={correctChoice !== null}
               onPress={() => onChoose(letter)}
             />
           </View>
@@ -231,10 +242,12 @@ function QuestionView({
 type OptionButtonProps = {
   letter: string;
   wrong: boolean;
+  correct: boolean;
+  disabled: boolean;
   onPress: () => void;
 };
 
-function OptionButton({ letter, wrong, onPress }: OptionButtonProps) {
+function OptionButton({ letter, wrong, correct, disabled, onPress }: OptionButtonProps) {
   const shake = useSharedValue(0);
   const scale = useSharedValue(1);
 
@@ -249,17 +262,28 @@ function OptionButton({ letter, wrong, onPress }: OptionButtonProps) {
     }
   }, [wrong, shake]);
 
+  useEffect(() => {
+    if (correct) {
+      scale.value = withSequence(
+        withSpring(1.12, { damping: 10, stiffness: 220 }),
+        withSpring(1, { damping: 12, stiffness: 200 })
+      );
+    }
+  }, [correct, scale]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shake.value }, { scale: scale.value }],
   }));
+
+  const isInactive = wrong || (disabled && !correct);
 
   return (
     <Animated.View style={animatedStyle}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Letter ${letter}`}
-        accessibilityState={{ disabled: wrong }}
-        disabled={wrong}
+        accessibilityState={{ disabled: isInactive, selected: correct }}
+        disabled={isInactive || correct}
         onPressIn={() => {
           scale.value = withSpring(0.93, { damping: 12, stiffness: 240 });
         }}
@@ -267,9 +291,19 @@ function OptionButton({ letter, wrong, onPress }: OptionButtonProps) {
           scale.value = withSpring(1, { damping: 10, stiffness: 200 });
         }}
         onPress={onPress}
-        style={[styles.option, wrong && styles.optionWrong]}
+        style={[
+          styles.option,
+          wrong && styles.optionWrong,
+          correct && styles.optionCorrect,
+        ]}
       >
-        <ThemedText style={[styles.optionLetter, wrong && styles.optionLetterWrong]}>
+        <ThemedText
+          style={[
+            styles.optionLetter,
+            wrong && styles.optionLetterWrong,
+            correct && styles.optionLetterCorrect,
+          ]}
+        >
           {letter}
         </ThemedText>
       </Pressable>
@@ -286,13 +320,14 @@ type DoneViewProps = {
 
 function DoneView({ score, total, onRestart, onHome }: DoneViewProps) {
   const { t } = useLanguage();
+  const theme = useTheme();
   return (
     <Animated.View entering={FadeInDown.duration(450)} style={styles.doneContent}>
       <Alfie size={200} letter={`${score}`} />
-      <ThemedText type="title" style={styles.doneTitle}>
+      <ThemedText type="title" style={[styles.doneTitle, { color: theme.text }]}>
         {t('quizDoneTitle')}
       </ThemedText>
-      <ThemedText style={styles.doneScore}>
+      <ThemedText style={[styles.doneScore, { color: theme.textSoft }]}>
         {t('quizScore', { score, total })}
       </ThemedText>
       <View style={styles.doneActions}>
@@ -337,7 +372,6 @@ function RoundButton({ onPress, children, accessibilityLabel }: RoundButtonProps
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Palette.cream,
   },
   topBar: {
     flexDirection: 'row',
@@ -347,9 +381,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
   },
-  title: {
-    color: Palette.ink,
-  },
+  title: {},
   progressPill: {
     minWidth: 56,
     paddingHorizontal: 12,
@@ -391,9 +423,7 @@ const styles = StyleSheet.create({
     lineHeight: 168,
     textAlign: 'center',
   },
-  prompt: {
-    color: Palette.inkSoft,
-  },
+  prompt: {},
   optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -423,6 +453,10 @@ const styles = StyleSheet.create({
     borderColor: '#E76A6A',
     opacity: 0.85,
   },
+  optionCorrect: {
+    backgroundColor: '#CFF1CF',
+    borderColor: '#5DBE5D',
+  },
   optionLetter: {
     fontSize: 64,
     lineHeight: 80,
@@ -434,6 +468,9 @@ const styles = StyleSheet.create({
   optionLetterWrong: {
     color: '#9A2E2E',
   },
+  optionLetterCorrect: {
+    color: '#1F6E1F',
+  },
   doneContent: {
     flex: 1,
     alignItems: 'center',
@@ -442,13 +479,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   doneTitle: {
-    color: Palette.ink,
     marginTop: 8,
   },
   doneScore: {
     fontSize: 22,
     fontWeight: '700',
-    color: Palette.inkSoft,
     textAlign: 'center',
   },
   doneActions: {

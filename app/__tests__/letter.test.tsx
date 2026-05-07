@@ -48,38 +48,43 @@ describe('Letter detail screen', () => {
       'Bee',
       expect.objectContaining({ language: 'en-US' })
     );
-    // The first call is the word; the letter follows via onDone.
     expect(speak.mock.calls[0][0]).toBe('Bee');
   });
 
-  it('navigates to the next letter when the right arrow is pressed', () => {
+  it('replaces the page content with the next letter (no navigation)', () => {
     const router = useRouter() as unknown as { replace: jest.Mock };
-    const { getByLabelText } = render(<Wrapped />);
+    const { getByLabelText, getByText, queryByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('Next letter C'));
-    expect(router.replace).toHaveBeenCalledWith('/letter/C');
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(getByText('C')).toBeTruthy();
+    expect(getByText('Cat')).toBeTruthy();
+    expect(queryByText('Bee')).toBeNull();
   });
 
-  it('navigates to the previous letter when the left arrow is pressed', () => {
+  it('replaces the page content with the previous letter (no navigation)', () => {
     const router = useRouter() as unknown as { replace: jest.Mock };
-    const { getByLabelText } = render(<Wrapped />);
+    const { getByLabelText, getByText, queryByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('Previous letter A'));
-    expect(router.replace).toHaveBeenCalledWith('/letter/A');
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(getByText('A')).toBeTruthy();
+    expect(getByText('Apple')).toBeTruthy();
+    expect(queryByText('Bee')).toBeNull();
   });
 
   it('disables the previous arrow on A', () => {
     mockedParams.mockReturnValue({ id: 'A' });
-    const router = useRouter() as unknown as { replace: jest.Mock };
-    const { getByLabelText } = render(<Wrapped />);
+    const { getByLabelText, getByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('No previous letter'));
-    expect(router.replace).not.toHaveBeenCalled();
+    // Stays on A.
+    expect(getByText('Apple')).toBeTruthy();
   });
 
   it('disables the next arrow on Z', () => {
     mockedParams.mockReturnValue({ id: 'Z' });
-    const router = useRouter() as unknown as { replace: jest.Mock };
-    const { getByLabelText } = render(<Wrapped />);
+    const { getByLabelText, getByText } = render(<Wrapped />);
     fireEvent.press(getByLabelText('No next letter'));
-    expect(router.replace).not.toHaveBeenCalled();
+    // Stays on Z.
+    expect(getByText('Zebra')).toBeTruthy();
   });
 
   it('returns home when the home button is pressed', () => {
