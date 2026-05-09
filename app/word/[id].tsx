@@ -61,11 +61,14 @@ export default function WordScreen() {
       withSpring(1.06, { damping: 9, stiffness: 180 }),
       withSpring(1, { damping: 12, stiffness: 200 })
     );
+  }, [entry?.id, lang, cardScale]);
+
+  useEffect(() => {
     speak();
     return () => {
       Speech.stop();
     };
-  }, [entry?.id, lang, speak, cardScale]);
+  }, [speak]);
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ scale: cardScale.value }],

@@ -63,11 +63,14 @@ export default function LetterScreen() {
       withSpring(1.06, { damping: 9, stiffness: 180 }),
       withSpring(1, { damping: 12, stiffness: 200 })
     );
+  }, [entry.letter, lang, blockScale]);
+
+  useEffect(() => {
     speak();
     return () => {
       Speech.stop();
     };
-  }, [entry.letter, lang, speak, blockScale]);
+  }, [speak]);
 
   const blockStyle = useAnimatedStyle(() => ({
     transform: [{ scale: blockScale.value }],
