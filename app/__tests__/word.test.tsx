@@ -81,7 +81,7 @@ describe('Word detail screen', () => {
   it('returns home when the home button is pressed', () => {
     const router = useRouter() as unknown as { back: jest.Mock };
     const { getByLabelText } = render(<Wrapped />);
-    fireEvent.press(getByLabelText('Home'));
+    fireEvent.press(getByLabelText('Back'));
     expect(router.back).toHaveBeenCalled();
   });
 

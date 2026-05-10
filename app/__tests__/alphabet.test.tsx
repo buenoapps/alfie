@@ -24,6 +24,11 @@ describe('Alphabet screen', () => {
     expect(getByText('Tap a letter to learn it')).toBeTruthy();
   });
 
+  it('renders the level title in the top bar', () => {
+    const { getByText } = renderAlphabet();
+    expect(getByText('Letters')).toBeTruthy();
+  });
+
   it('renders a tile for every letter A–Z', () => {
     const { getByLabelText } = renderAlphabet();
     for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
@@ -48,7 +53,7 @@ describe('Alphabet screen', () => {
   it('calls router.back when the home button is pressed', () => {
     const router = useRouter() as unknown as { back: jest.Mock };
     const { getByLabelText } = renderAlphabet();
-    fireEvent.press(getByLabelText('Home'));
+    fireEvent.press(getByLabelText('Back'));
     expect(router.back).toHaveBeenCalled();
   });
 });

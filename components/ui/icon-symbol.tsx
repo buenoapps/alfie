@@ -12,6 +12,7 @@ const MAPPING = {
   'house.fill': 'home',
   'chevron.right': 'chevron-right',
   'chevron.left': 'chevron-left',
+  'arrow.left': 'arrow-back',
   'speaker.wave.2.fill': 'volume-up',
   'speaker.slash.fill': 'volume-off',
 } as IconMapping;

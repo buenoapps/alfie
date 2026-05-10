@@ -159,8 +159,8 @@ export default function WordQuizScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.screen }]}>
       <View style={styles.topBar}>
-        <RoundButton onPress={goHome} accessibilityLabel={t('home')}>
-          <IconSymbol name="house.fill" size={28} color={Palette.ink} />
+        <RoundButton onPress={goHome} accessibilityLabel={t('back')}>
+          <IconSymbol name="arrow.left" size={28} color={Palette.ink} />
         </RoundButton>
         <ThemedText type="subtitle" style={[styles.title, { color: theme.text }]}>
           {t('wordQuizTitle')}

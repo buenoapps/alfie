@@ -33,6 +33,17 @@ describe('Words screen', () => {
     expect(getByLabelText('Word Sun')).toBeTruthy();
   });
 
+  it('renders the level title in the top bar', () => {
+    const { getByText } = render(<Wrapped />);
+    expect(getByText('Words')).toBeTruthy();
+    expect(getByText('Tap a word to learn it')).toBeTruthy();
+  });
+
+  it('renders the German level title when language is German', () => {
+    const { getByText } = render(<Wrapped initialLang="de" />);
+    expect(getByText('Wörter')).toBeTruthy();
+  });
+
   it('renders the DE word list when language is German', () => {
     const { getByLabelText } = render(<Wrapped initialLang="de" />);
     expect(getByLabelText('Word Mama')).toBeTruthy();
@@ -57,7 +68,7 @@ describe('Words screen', () => {
   it('calls router.back when the home button is pressed', () => {
     const router = useRouter() as unknown as { back: jest.Mock };
     const { getByLabelText } = render(<Wrapped />);
-    fireEvent.press(getByLabelText('Home'));
+    fireEvent.press(getByLabelText('Back'));
     expect(router.back).toHaveBeenCalled();
   });
 });
