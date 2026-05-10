@@ -26,7 +26,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export default function LetterScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const { enabled: audioEnabled, toggle: toggleAudio } = useAudio();
   const theme = useTheme();
   const scheme = useColorScheme() ?? 'light';
@@ -94,8 +94,8 @@ export default function LetterScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: tint(entry.color, scheme) }]}>
       <View style={styles.topBar}>
-        <RoundButton onPress={goHome} accessibilityLabel="Home">
-          <IconSymbol name="house.fill" size={28} color={Palette.ink} />
+        <RoundButton onPress={goHome} accessibilityLabel={t('back')}>
+          <IconSymbol name="arrow.left" size={28} color={Palette.ink} />
         </RoundButton>
       </View>
 

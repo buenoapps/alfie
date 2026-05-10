@@ -21,6 +21,7 @@ export type StringKey =
   | 'quizScore'
   | 'playAgain'
   | 'home'
+  | 'back'
   | 'language';
 
 export const Strings: Record<Language, Record<StringKey, string>> = {
@@ -45,6 +46,7 @@ export const Strings: Record<Language, Record<StringKey, string>> = {
     quizScore: 'You got {score} out of {total}!',
     playAgain: 'Play again',
     home: 'Home',
+    back: 'Back',
     language: 'Language',
   },
   de: {
@@ -68,6 +70,7 @@ export const Strings: Record<Language, Record<StringKey, string>> = {
     quizScore: '{score} von {total} richtig!',
     playAgain: 'Nochmal spielen',
     home: 'Start',
+    back: 'Zurück',
     language: 'Sprache',
   },
 };

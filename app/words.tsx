@@ -40,17 +40,21 @@ export default function WordsScreen() {
         <View style={styles.topBar}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t('home')}
+            accessibilityLabel={t('back')}
             onPress={goHome}
             style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
           >
-            <IconSymbol name="house.fill" size={28} color={Palette.ink} />
+            <IconSymbol name="arrow.left" size={28} color={Palette.ink} />
           </Pressable>
-          <ThemedText style={[styles.subtitle, { color: theme.textSoft }]}>
-            {t('tapWordToLearn')}
+          <ThemedText type="subtitle" style={[styles.title, { color: theme.text }]}>
+            {t('levelWords')}
           </ThemedText>
           <View style={styles.spacer} />
         </View>
+
+        <ThemedText style={[styles.subtitle, { color: theme.textSoft }]}>
+          {t('tapWordToLearn')}
+        </ThemedText>
 
         <View style={styles.grid}>
           {words.map(({ id, word, emoji, color }) => (
@@ -112,11 +116,15 @@ const styles = StyleSheet.create({
   backButtonPressed: {
     transform: [{ scale: 0.94 }],
   },
+  title: {
+    flex: 1,
+    textAlign: 'center',
+  },
   subtitle: {
     fontSize: 16,
     fontWeight: '700',
-    flex: 1,
     textAlign: 'center',
+    paddingBottom: 16,
   },
   spacer: {
     width: 56,
