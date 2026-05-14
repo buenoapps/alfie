@@ -4,7 +4,7 @@ Notes for future agents working in this repo. Read README.md for the user-facing
 
 ## Project
 
-Expo SDK 54 / React 19 / React Native 0.81 / expo-router 6. A two-level learning app for kids: alphabet (A–Z) and short words.
+Expo SDK 56 (preview) / React 19.2 / React Native 0.85 / expo-router 6. A two-level learning app for kids: alphabet (A–Z) and short words.
 
 Screens, all under `app/`:
 
@@ -61,6 +61,8 @@ Jest + jest-expo + `@testing-library/react-native`. Setup file is `jest.setup.js
 - `expo-speech`, `expo-haptics`, `expo-symbols`
 - `@react-native-async-storage/async-storage` (in-memory)
 - Reanimated (via the package's built-in `mock`)
+
+The jest config in `package.json` sets `"resolver": "react-native-worklets/jest/resolver.js"` — Reanimated 4 depends on `react-native-worklets`, and that resolver strips `.native` extensions so the worklets module doesn't try to initialize its native part under jest. Don't remove it.
 
 Gotchas:
 
