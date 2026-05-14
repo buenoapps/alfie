@@ -79,7 +79,7 @@ hooks/
 
 ## Tech notes
 
-- Expo SDK 54, React 19.1, React Native 0.81, expo-router 6 (file-based routing, typed routes).
+- Expo SDK 56 (preview), React 19.2, React Native 0.85, expo-router 6 (file-based routing, typed routes).
 - `react-native-reanimated` drives Alfie's bob/wing flap, the letter and word spring-ins, and the quiz green/red answer effects.
 - `react-native-svg` for the mascot.
 - `@react-native-async-storage/async-storage` for persisted language and mute state.
