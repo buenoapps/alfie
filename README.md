@@ -2,7 +2,7 @@
 
 A super-simple learning app for kids, fronted by **Alfie** the bumblebee. Two levels: the alphabet (A–Z + letter quiz) and short, simple words (Mum, Dad, Sun… in EN; Mama, Papa, Kaka, Bus… in DE).
 
-Built with [Expo](https://expo.dev) + Expo Router.
+Built with [Expo](https://expo.dev) + Expo Router. The web build is auto-deployed to GitHub Pages from `main` → **https://buenoapps.github.io/alfie/**.
 
 ## Run it
 
@@ -39,7 +39,7 @@ Audio uses `expo-speech` — system text-to-speech, no audio assets, no network.
 | `npm test` | Run the Jest suite (130 tests across 20 suites) |
 | `npm run lint` | `expo lint` |
 
-Type-check with `npx tsc --noEmit`. The CI workflow at `.github/workflows/ci.yml` runs lint, type-check, tests, and a web bundle export on every push to `main` and every pull request targeting `main`.
+Type-check with `npx tsc --noEmit`. The CI workflow at `.github/workflows/ci.yml` runs lint, type-check, tests, and a web bundle export on every push to `main` and every pull request targeting `main`. A second workflow, `.github/workflows/deploy-pages.yml`, builds the web bundle with `EXPO_BASE_URL=/<repo>` and deploys it to GitHub Pages on every push to `main`.
 
 ## Project layout
 
@@ -74,7 +74,9 @@ contexts/
 hooks/
   use-color-scheme.ts    System color scheme (with web hydration variant)
   use-theme-color.ts     Resolves a single theme color
-.github/workflows/ci.yml CI: lint, type-check, tests, build
+app.config.js              Wraps app.json — adds web baseUrl from EXPO_BASE_URL
+.github/workflows/ci.yml   CI: lint, type-check, tests, build
+.github/workflows/deploy-pages.yml  Builds + deploys the web bundle to GitHub Pages
 ```
 
 ## Tech notes

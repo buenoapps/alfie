@@ -1,0 +1,67 @@
+name: Deploy web to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build web bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Export web bundle
+        env:
+          EXPO_BASE_URL: ${{ steps.pages.outputs.base_path }}
+        run: npx expo export --platform web --output-dir dist
+
+      - name: Prepare Pages artifact
+        run: |
+          # Tell Pages not to run Jekyll — Expo emits a `_expo/` folder that
+          # Jekyll would otherwise strip.
+          touch dist/.nojekyll
+          # SPA fallback so deep links to dynamic routes (/letter/B, /word/mama)
+          # land on the bundle instead of a stock 404.
+          cp dist/index.html dist/404.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
