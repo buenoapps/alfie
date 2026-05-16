@@ -28,6 +28,8 @@ npx expo export --platform web --output-dir dist   # build sanity check
 
 CI mirrors these in `.github/workflows/ci.yml` (Node 20, runs on push to `main` and PRs targeting `main`). If you change one of these commands, update both `package.json` scripts and the workflow.
 
+`.github/workflows/deploy-pages.yml` builds the web bundle with `EXPO_BASE_URL=/${{ github.event.repository.name }}` (from `actions/configure-pages` `base_path` output) and publishes it to GitHub Pages on every push to `main`. The base-url override lives in `app.config.js`, which is a no-op passthrough when `EXPO_BASE_URL` is unset — so local dev and EAS builds are untouched. Don't bake the baseUrl into `app.json` directly; that would break `expo start`.
+
 ## Workflow
 
 The repo owner has been explicit:
